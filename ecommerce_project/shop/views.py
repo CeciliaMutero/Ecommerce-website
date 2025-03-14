@@ -1,6 +1,4 @@
 from django.shortcuts import render
-
-# Create your views here.
 from django.shortcuts import get_object_or_404
 from django.core.mail import send_mail
 from rest_framework.decorators import api_view, permission_classes
@@ -9,6 +7,7 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 from .models import Product, Order, OrderItem, Payment
 from .serializers import ProductSerializer, OrderSerializer, OrderItemSerializer, PaymentSerializer
+from rest_framework_simplejwt.views import TokenObtainPairView
 
 # ===========================
 # 📌 PRODUCTS (CRUD)
@@ -116,3 +115,38 @@ def process_payment(request, order_id):
         return Response({"message": "Payment successful!", "payment_id": payment.id}, status=status.HTTP_201_CREATED)
 
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+from django.contrib.auth.models import User
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework_simplejwt.tokens import RefreshToken
+
+@api_view(['POST'])
+def register_user(request):
+    """User registration"""
+    username = request.data.get('username')
+    email = request.data.get('email')
+    password = request.data.get('password')
+
+    if not username or not email or not password:
+        return Response({"error": "All fields are required"}, status=status.HTTP_400_BAD_REQUEST)
+
+    if User.objects.filter(username=username).exists():
+        return Response({"error": "Username already taken"}, status=status.HTTP_400_BAD_REQUEST)
+
+    user = User.objects.create_user(username=username, email=email, password=password)
+    
+    # Generate JWT token for the new user
+    refresh = RefreshToken.for_user(user)
+    return Response({
+        "message": "User registered successfully!",
+        "refresh": str(refresh),
+        "access": str(refresh.access_token)
+    }, status=status.HTTP_201_CREATED)
+
+# ✅ Login API (Returns JWT tokens)
+class CustomTokenObtainPairView(TokenObtainPairView):
+    """Custom JWT Login View"""
+    pass
+
