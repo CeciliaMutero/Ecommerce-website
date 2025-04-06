@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import './Products.css';
 
 function Products() {
-  const [products, setProducts] = useState(null); // Initialize as null to differentiate between loading and empty states
+  const [products, setProducts] = useState(null);
   const [error, setError] = useState(null);
 
   useEffect(() => {
@@ -30,14 +31,22 @@ function Products() {
   }
 
   return (
-    <div>
+    <div className='product-list-container'>
       {products.map((product) => (
-        <div key={product.id}>
-          {/* Render product details here */}
-          <h2>{product.name}</h2>
-          <p>{product.description}</p>
-          {/* Add more product details as needed */}
-          <Link to={`/products/${product.id}`}>View Details</Link>
+        <div className='product-item' key={product.id}>
+          <img
+            src={`http://127.0.0.1:8000${product.image}`}
+            alt={product.name}
+            className='product-image'
+          />
+          <div className='product-details'>
+            <h2 className='product-name'>{product.name}</h2>
+            <p className='product-description'>{product.description}</p>
+            <p className='product-price'>${product.price}</p>
+            <Link to={`/products/${product.id}`} className='view-details-btn'>
+              View Details
+            </Link>
+          </div>
         </div>
       ))}
     </div>
